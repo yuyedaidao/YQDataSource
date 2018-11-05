@@ -15,6 +15,8 @@
 		55B4E61A219076080078434C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 55B4E619219076080078434C /* main.m */; };
 		55B4E624219076080078434C /* YQDataSourceTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 55B4E623219076080078434C /* YQDataSourceTests.m */; };
 		55B4E62F219076080078434C /* YQDataSourceUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 55B4E62E219076080078434C /* YQDataSourceUITests.m */; };
+		55B4E641219076C90078434C /* Diff.m in Sources */ = {isa = PBXBuildFile; fileRef = 55B4E63D219076C90078434C /* Diff.m */; };
+		55B4E644219076C90078434C /* YQSectionModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 55B4E640219076C90078434C /* YQSectionModel.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +53,10 @@
 		55B4E62A219076080078434C /* YQDataSourceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YQDataSourceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B4E62E219076080078434C /* YQDataSourceUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YQDataSourceUITests.m; sourceTree = "<group>"; };
 		55B4E630219076080078434C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		55B4E63D219076C90078434C /* Diff.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Diff.m; sourceTree = "<group>"; };
+		55B4E63E219076C90078434C /* YQSectionModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YQSectionModel.h; sourceTree = "<group>"; };
+		55B4E63F219076C90078434C /* Diff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Diff.h; sourceTree = "<group>"; };
+		55B4E640219076C90078434C /* YQSectionModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YQSectionModel.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +87,7 @@
 		55B4E5FE219076060078434C = {
 			isa = PBXGroup;
 			children = (
+				55B4E63C219076C90078434C /* Classes */,
 				55B4E609219076060078434C /* YQDataSource */,
 				55B4E622219076080078434C /* YQDataSourceTests */,
 				55B4E62D219076080078434C /* YQDataSourceUITests */,
@@ -130,6 +137,17 @@
 				55B4E630219076080078434C /* Info.plist */,
 			);
 			path = YQDataSourceUITests;
+			sourceTree = "<group>";
+		};
+		55B4E63C219076C90078434C /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				55B4E63F219076C90078434C /* Diff.h */,
+				55B4E63D219076C90078434C /* Diff.m */,
+				55B4E63E219076C90078434C /* YQSectionModel.h */,
+				55B4E640219076C90078434C /* YQSectionModel.m */,
+			);
+			path = Classes;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -264,7 +282,9 @@
 			files = (
 				55B4E60F219076070078434C /* ViewController.m in Sources */,
 				55B4E61A219076080078434C /* main.m in Sources */,
+				55B4E641219076C90078434C /* Diff.m in Sources */,
 				55B4E60C219076060078434C /* AppDelegate.m in Sources */,
+				55B4E644219076C90078434C /* YQSectionModel.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
