@@ -22,7 +22,6 @@ static YQAssociatedData YQAssociatedDataDefault = {YQItemActionNone, 0, NSNotFou
     YQAssociatedData *finalSectionsAssociatedData = NULL;
     [self calculateSectionMovementsWithInitialArray:initialArray finalArray:finalArray initialYQAssociatedDataArray:&initialSectionsAssociatedData finalYQAssociatedDataArray:&finalSectionsAssociatedData];
     
-    
     free(initialSectionsAssociatedData);
     free(finalSectionsAssociatedData);
     return nil;
@@ -47,8 +46,10 @@ static YQAssociatedData YQAssociatedDataDefault = {YQItemActionNone, 0, NSNotFou
             NSInteger initialSectionIndex = [index integerValue];
             initialSectionsAssociatedData[initialSectionIndex].moveIndex = idx;
             finalSectionsAssociatedData[idx].moveIndex = initialSectionIndex;
-//            initialSectionsAssociatedData[initialSectionIndex] = finalSectionsAssociatedData[idx] = (ini)
-            NSLog(@"I moveIndex: %ld F moveIndex: %ld", idx, initialSectionIndex);
+            YQItemAction action = (initialSectionIndex == idx ? YQItemActionHolding : YQItemActionMove);
+            initialSectionsAssociatedData[initialSectionIndex].action = finalSectionsAssociatedData[idx].action = action;
+        } else {
+            finalSectionsAssociatedData[idx].action = YQItemActionInsert;
         }
     }];
     
@@ -56,42 +57,11 @@ static YQAssociatedData YQAssociatedDataDefault = {YQItemActionNone, 0, NSNotFou
     NSInteger sectionIndexAfterDelete = 0;
     for (NSInteger i = 0; i < initialSections.count; i++) {
         initialSectionsAssociatedData[i].itemCount = initialSections[i].items.count;
-        if (initialSectionsAssociatedData[i].moveIndex == NSNotFound) {//上一步没有修改moveIndex,说明已经不在新数组中了 **剩下的要么是move,要么是holding
+        if (initialSectionsAssociatedData[i].action == YQItemActionNone) {
             initialSectionsAssociatedData[i].action = YQItemActionDelete;
-            NSLog(@"I (%ld) action: %ld", i, YQItemActionDelete);
             continue;
         }
         initialSectionsAssociatedData[i].indexAfterDelete = sectionIndexAfterDelete ++;
-        NSLog(@"I (%ld) indexAfterDelete: %ld", i, sectionIndexAfterDelete - 1);
-    }
-    
-    // get moved sections and inserted sections
-    NSInteger noActionIndex = 0;
-    NSInteger (^findNextNoActionIndex)(NSInteger index) =  ^(NSInteger index) {
-        if (index != NSNotFound) {
-            NSInteger i = index;
-            while (i < initialSections.count) {
-                if (finalSectionsAssociatedData[i].moveIndex == NSNotFound && initialSectionsAssociatedData[i].action == YQItemActionNone) {
-                    return i;
-                }
-                i ++;
-            }
-        }
-        return NSNotFound;
-    };
-    for (NSInteger i = 0; i < finalSections.count; i++) {
-        noActionIndex = findNextNoActionIndex(noActionIndex);
-        NSInteger oldSectionIndex = finalSectionsAssociatedData[i].moveIndex;
-        if (oldSectionIndex == NSNotFound) {//说明旧数组中没有
-            if (finalSectionsAssociatedData[i].action == YQItemActionNone) {
-                NSLog(@"F (%ld) action: %ld", i, YQItemActionInsert);
-                finalSectionsAssociatedData[i].action =  YQItemActionInsert;
-            }
-        } else {//说明旧数组中有，必定是move或原地不动
-            YQItemAction action = (oldSectionIndex == noActionIndex ? YQItemActionHolding : YQItemActionMove);
-            initialSectionsAssociatedData[oldSectionIndex].action = finalSectionsAssociatedData[i].action = action;
-            NSLog(@"I (%ld) and F (%ld) action: %ld", oldSectionIndex, i, action);
-        }
     }
     
     *initialYQAssociatedDataArray = initialSectionsAssociatedData;
