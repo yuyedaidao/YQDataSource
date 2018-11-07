@@ -7,7 +7,6 @@
 //
 
 #import "ViewController.h"
-#import "Diff.h"
 @interface ViewController ()
 
 @end

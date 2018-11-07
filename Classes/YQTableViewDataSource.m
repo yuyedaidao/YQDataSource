@@ -10,7 +10,6 @@
 #import <IGListKit/IGListDiff.h>
 
 @interface YQTableViewDataSource ()
-@property (strong, nonatomic) NSArray<YQSectionModel *> *dataArray;
 @property (weak, nonatomic) UITableView *tableView;
 @end
 
@@ -49,7 +48,9 @@
                 //REMARK:先计算section变化，执行动画，然后计算剩下的section里的items,再执行动画
 //                IGListIndexSetResult *result = IGListDiff(oldArray, dataArray, IGListDiffEquality);
                 
-//                IGListIndexPathResult *result = IGListDiffPaths(<#NSInteger fromSection#>, <#NSInteger toSection#>, <#NSArray<id<IGListDiffable>> * _Nullable oldArray#>, <#NSArray<id<IGListDiffable>> * _Nullable newArray#>, <#IGListDiffOption option#>)
+                IGListIndexPathResult *result = IGListDiffPaths(0, 0, oldArray, dataArray, IGListDiffEquality);
+                NSLog(@"result : %@",result);
+                
 //                [self.tableView reloadData];
             }
         });
@@ -112,6 +113,33 @@
 
  */
 
+
+#pragma mark 下标取值
+- (YQSectionModel *)objectAtIndexedSubscript:(NSUInteger)idx {
+    return self.dataArray[idx];
+}
+
+- (id)objectForKeyedSubscript:(NSIndexPath *)key {
+    return self.dataArray[key.section].items[key.row];
+}
+
+#pragma mark set & get
+
+- (RACCommand *)addCommand {
+    if (!_addCommand) {
+        @weakify(self);
+        _addCommand = [[RACCommand alloc] initWithSignalBlock:^RACSignal *(id input) {
+            @strongify(self);
+            NSMutableArray *array = [(self.dataArray.lastObject.items ?  : @[]) mutableCopy];
+            [array addObject:input];
+            NSArray<YQSectionModel *> *dataArray = [self.dataArray mutableCopy];
+            dataArray.lastObject.items = array;
+            self.dataArray = dataArray;
+            return [RACSignal empty];
+        }];
+    }
+    return _addCommand;
+}
 @end
 
 @implementation UITableView (RACTableViewDataSource)

@@ -15,12 +15,20 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface YQTableViewDataSource : NSObject<UITableViewDataSource>
 - (instancetype)initWithConfigureCell:(nullable  __kindof UITableViewCell *(^)(YQTableViewDataSource *dataSource, UITableView *tableView, NSIndexPath *indexPath, id item))configureCell NS_DESIGNATED_INITIALIZER;
+@property (strong, nonatomic, readonly) NSArray<YQSectionModel *> *dataArray;
 @property (copy, nonatomic) __kindof UITableViewCell * (^configureCell)(YQTableViewDataSource *dataSource, UITableView *tableView, NSIndexPath *indexPath, id item);
-
 /**
  是否以动画形式更新
  */
 @property (copy, nonatomic) BOOL (^animated)(YQTableViewDataSource *dataSource);
+- (YQSectionModel *)objectAtIndexedSubscript:(NSUInteger)idx;
+- (id)objectForKeyedSubscript:(NSIndexPath *)key;
+
+@property (strong, nonatomic) RACCommand *deleteCommand;
+@property (strong, nonatomic) RACCommand *addCommand;
+@property (strong, nonatomic) RACCommand *insertCommand;
+@property (strong, nonatomic) RACCommand *updateCommand;
+@property (strong, nonatomic) RACCommand *moveCommand;
 
 @end
 
