@@ -24,12 +24,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (YQSectionModel *)objectAtIndexedSubscript:(NSUInteger)idx;
 - (id)objectForKeyedSubscript:(NSIndexPath *)key;
 
-@property (strong, nonatomic) RACCommand *deleteCommand;
-@property (strong, nonatomic) RACCommand *addCommand;
-@property (strong, nonatomic) RACCommand *insertCommand;
-@property (strong, nonatomic) RACCommand *updateCommand;
-@property (strong, nonatomic) RACCommand *moveCommand;
-
 @end
 
 @interface UITableView (YQTableViewDataSource)

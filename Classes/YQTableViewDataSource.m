@@ -40,16 +40,62 @@
     }
     if (animated) {
         NSArray<YQSectionModel *> *oldArray = _dataArray;
-        _dataArray = dataArray;
+        IGListIndexPathResult *result = IGListDiffPaths(0, 0, oldArray, dataArray, IGListDiffEquality).resultForBatchUpdates;
+        NSLog(@"result : %@",result);
+        
         dispatch_async(dispatch_get_main_queue(), ^{
+            _dataArray = dataArray;
+
             if (self.tableView.window == nil) {
                 [self.tableView reloadData];
             } else {
                 //REMARK:先计算section变化，执行动画，然后计算剩下的section里的items,再执行动画
-//                IGListIndexSetResult *result = IGListDiff(oldArray, dataArray, IGListDiffEquality);
-                
-                IGListIndexPathResult *result = IGListDiffPaths(0, 0, oldArray, dataArray, IGListDiffEquality);
-                NSLog(@"result : %@",result);
+                if (@available(iOS 11.0, *)) {
+                    [self.tableView performBatchUpdates:^{
+                        if (result.inserts.count) {
+                            NSMutableIndexSet *set = [NSMutableIndexSet  indexSet];
+                            [result.inserts enumerateObjectsUsingBlock:^(NSIndexPath * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                                [set addIndex:obj.row];
+                            }];
+                            [self.tableView insertSections:set withRowAnimation:UITableViewRowAnimationAutomatic];
+                        }
+                        if (result.deletes.count) {
+                            NSMutableIndexSet *set = [NSMutableIndexSet  indexSet];
+                            [result.deletes enumerateObjectsUsingBlock:^(NSIndexPath * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                                [set addIndex:obj.row];
+                            }];
+
+                            [self.tableView deleteSections:set withRowAnimation:UITableViewRowAnimationAutomatic];
+                            
+                        }
+                        
+                        if (result.updates.count) {
+                            NSMutableIndexSet *set = [NSMutableIndexSet  indexSet];
+                            [result.updates enumerateObjectsUsingBlock:^(NSIndexPath * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                                [set addIndex:obj.row];
+                            }];
+
+                            [self.tableView reloadSections:set withRowAnimation:UITableViewRowAnimationAutomatic];
+                            
+                        }
+                        
+                        if (result.moves.count) {
+                            [result.moves enumerateObjectsUsingBlock:^(IGListMoveIndexPath * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                                [self.tableView moveSection:obj.from.row toSection:obj.to.row];
+                            }];
+                        }
+                        
+                    } completion:^(BOOL finished) {
+                        
+                    }];
+
+
+                } else {
+                    // Fallback on earlier versions
+                    [self.tableView beginUpdates];
+                    
+                    [self.tableView endUpdates];
+                }
                 
 //                [self.tableView reloadData];
             }
@@ -125,21 +171,6 @@
 
 #pragma mark set & get
 
-- (RACCommand *)addCommand {
-    if (!_addCommand) {
-        @weakify(self);
-        _addCommand = [[RACCommand alloc] initWithSignalBlock:^RACSignal *(id input) {
-            @strongify(self);
-            NSMutableArray *array = [(self.dataArray.lastObject.items ?  : @[]) mutableCopy];
-            [array addObject:input];
-            NSArray<YQSectionModel *> *dataArray = [self.dataArray mutableCopy];
-            dataArray.lastObject.items = array;
-            self.dataArray = dataArray;
-            return [RACSignal empty];
-        }];
-    }
-    return _addCommand;
-}
 @end
 
 @implementation UITableView (RACTableViewDataSource)
