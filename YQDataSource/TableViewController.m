@@ -52,16 +52,15 @@
     [self.tableView rac_dataSource:self.dataSource bindSignal: self.dataSignal];
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        NSMutableArray *array = sections.mutableCopy;
+        NSMutableArray *array = [NSMutableArray arrayWithArray:sections];
 //        [array removeObjectAtIndex:1];
 ////        [array addObject:sections.firstObject];
 //        [array insertObject:sections.firstObject atIndex:2];
         
-        id a = sections.firstObject;
-        id b = sections[2];
-        [array replaceObjectAtIndex:2 withObject:a];
-        [array replaceObjectAtIndex:0 withObject:b];
-
+        YQSectionModel *newSecton = [section mutableCopy];
+        NSMutableArray *items = [NSMutableArray arrayWithArray:[section.items subarrayWithRange:NSMakeRange(1, section.items.count - 1)]];
+        newSecton.items = items;
+        [array replaceObjectAtIndex:0 withObject:newSecton];
         [self.dataSignal sendNext:array];
     });
 }

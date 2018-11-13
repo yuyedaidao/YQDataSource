@@ -48,5 +48,14 @@
     return [self isEqual:object];
 }
 
+
+
+- (nonnull id)mutableCopyWithZone:(nullable NSZone *)zone {
+    YQSectionModel *model = [[YQSectionModel allocWithZone:zone] init];
+    model.identifier = self.identifier;
+    model.items = self.items;
+    return model;
+}
+
 @end
 

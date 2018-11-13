@@ -28,7 +28,7 @@
 }
 
 - (void)commonInit {
-   
+   //nothing
 }
 
 #pragma mark set && get
@@ -39,68 +39,75 @@
         animated = self.animated(self);
     }
     if (animated) {
-        NSArray<YQSectionModel *> *oldArray = _dataArray;
-        IGListIndexPathResult *result = IGListDiffPaths(0, 0, oldArray, dataArray, IGListDiffEquality).resultForBatchUpdates;
-        NSLog(@"result : %@",result);
         
-        dispatch_async(dispatch_get_main_queue(), ^{
+        if (self.tableView.window == nil) {
             _dataArray = dataArray;
-
-            if (self.tableView.window == nil) {
-                [self.tableView reloadData];
-            } else {
-                //REMARK:先计算section变化，执行动画，然后计算剩下的section里的items,再执行动画
-                if (@available(iOS 11.0, *)) {
-                    [self.tableView performBatchUpdates:^{
-                        if (result.inserts.count) {
-                            NSMutableIndexSet *set = [NSMutableIndexSet  indexSet];
-                            [result.inserts enumerateObjectsUsingBlock:^(NSIndexPath * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                                [set addIndex:obj.row];
-                            }];
-                            [self.tableView insertSections:set withRowAnimation:UITableViewRowAnimationAutomatic];
-                        }
-                        if (result.deletes.count) {
-                            NSMutableIndexSet *set = [NSMutableIndexSet  indexSet];
-                            [result.deletes enumerateObjectsUsingBlock:^(NSIndexPath * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                                [set addIndex:obj.row];
-                            }];
-
-                            [self.tableView deleteSections:set withRowAnimation:UITableViewRowAnimationAutomatic];
-                            
-                        }
-                        
-                        if (result.updates.count) {
-                            NSMutableIndexSet *set = [NSMutableIndexSet  indexSet];
-                            [result.updates enumerateObjectsUsingBlock:^(NSIndexPath * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                                [set addIndex:obj.row];
-                            }];
-
-                            [self.tableView reloadSections:set withRowAnimation:UITableViewRowAnimationAutomatic];
-                            
-                        }
-                        
-                        if (result.moves.count) {
-                            [result.moves enumerateObjectsUsingBlock:^(IGListMoveIndexPath * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                                [self.tableView moveSection:obj.from.row toSection:obj.to.row];
-                            }];
-                        }
-                        
-                    } completion:^(BOOL finished) {
-                        
-                    }];
-
-
-                } else {
-                    // Fallback on earlier versions
-                    [self.tableView beginUpdates];
-                    
-                    [self.tableView endUpdates];
+            [self.tableView reloadData];
+        } else {
+            NSArray<YQSectionModel *> *oldArray = _dataArray;
+            IGListIndexSetResult *sectionsResult = IGListDiff(oldArray, dataArray, IGListDiffEquality).resultForBatchUpdates;
+            NSMutableArray *rowInserts = @[].mutableCopy;
+            NSMutableArray *rowDeletes = @[].mutableCopy;
+            NSMutableArray *rowUploads = @[].mutableCopy;
+            NSMutableArray<IGListMoveIndexPath *> *rowMoves = @[].mutableCopy;
+            [dataArray enumerateObjectsUsingBlock:^(YQSectionModel * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                NSInteger oldIndex = [sectionsResult oldIndexForIdentifier:obj.diffIdentifier];
+                if (oldIndex != NSNotFound) {//移动或更新
+                    YQSectionModel *oldSection = oldArray[oldIndex];
+                    IGListIndexPathResult* result = IGListDiffPaths(idx, idx, oldSection.items, obj.items, IGListDiffEquality);
+                    [rowInserts addObjectsFromArray:result.inserts];
+                    [rowDeletes addObjectsFromArray:result.deletes];
+                    [rowUploads addObjectsFromArray:result.updates];
+                    [rowMoves addObjectsFromArray:result.moves];
                 }
-                
-//                [self.tableView reloadData];
-            }
-        });
+            }];
 
+            //REMARK:先计算section变化，执行动画，然后计算剩下的section里的items,再执行动画
+            void (^update)(void) = ^{
+                if (sectionsResult.deletes.count) {
+                    [self.tableView deleteSections:sectionsResult.deletes withRowAnimation:UITableViewRowAnimationAutomatic];
+                }
+                if (sectionsResult.updates.count) {
+                    [self.tableView reloadSections:sectionsResult.updates withRowAnimation:UITableViewRowAnimationAutomatic];
+                    
+                }
+                if (sectionsResult.inserts.count) {
+                    [self.tableView insertSections:sectionsResult.inserts withRowAnimation:UITableViewRowAnimationAutomatic];
+                }
+                if (sectionsResult.moves.count) {
+                    [sectionsResult.moves enumerateObjectsUsingBlock:^(IGListMoveIndex * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                        [self.tableView moveSection:obj.from toSection:obj.to];
+                    }];
+                }
+               
+                if (rowDeletes.count) {
+                    [self.tableView deleteRowsAtIndexPaths:rowDeletes withRowAnimation:UITableViewRowAnimationAutomatic];
+                }
+                if (rowUploads.count) {
+                    [self.tableView reloadRowsAtIndexPaths:rowUploads withRowAnimation:UITableViewRowAnimationAutomatic];
+                }
+                if (rowInserts.count) {
+                    [self.tableView insertRowsAtIndexPaths:rowInserts withRowAnimation:UITableViewRowAnimationAutomatic];
+                }
+                [rowMoves enumerateObjectsUsingBlock:^(IGListMoveIndexPath * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                    [self.tableView moveRowAtIndexPath:obj.from toIndexPath:obj.to];
+                }];
+
+            };
+            if (@available(iOS 11.0, *)) {
+                [self.tableView performBatchUpdates:^{
+                    _dataArray = dataArray;
+                    update();
+                } completion:^(BOOL finished) {
+                }];
+
+            } else {
+                // Fallback on earlier versions
+                [self.tableView beginUpdates];
+                update();
+                [self.tableView endUpdates];
+            }
+        }
     } else {
         if (_dataArray != dataArray) {
             _dataArray = dataArray;
